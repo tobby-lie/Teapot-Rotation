@@ -25,6 +25,7 @@
 *       init - Handles initialization.
 *  Controls:
 *       Hold down left mouse button:
+*           (With reference to right side up orientation)
 *           - Drag left - teapot moves right.
 *           - Drag right - teapot moves left.
 *           - Drag up - teapot moves down.
