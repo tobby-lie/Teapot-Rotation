@@ -1,17 +1,21 @@
+/*
+ Tobby Lie
+ Intro to Graphics HW 3
+ 2/27/20
+*/
+
 #define GL_SILENCE_DEPRECATION // silence deprecation warnings
 
-#include <stdlib.h>
 #include <GLUT/GLUT.h>
 #include <iostream>
 #include <vector>
 #include <tuple>
 #include <cmath>
 
-static int elevation = 0;
-static int swing = 0;
-static std::vector<float> look_vector = {0, 0, 10};
-static int prev_mousex, prev_mousey = 0;
-bool dragging = false;
+static int elevation, swing = 0; // variables for elevation and swing
+static int prev_mousex, prev_mousey = 0; // variables for last position of mouse coordinates before motion registered
+bool dragging = false; // flag for dragging mouse if left mouse button pressed down
+static std::vector<float> look_vector = {0, 0, 0}; // holds look vector which will be normalized and manipulated
 
 // struct to hold x, y coordinates
 struct Coordinates
@@ -19,33 +23,96 @@ struct Coordinates
     double x, y;
 }; // end Coordinates
 
-static std::vector<Coordinates> x_grid_coord_vec;
-
-std::vector<float> cross_product(std::vector<float> v1, std::vector<float> v2)
+// exception class for vector size mismatch
+class VectorSizeMismatch
 {
+public:
+    VectorSizeMismatch() {} // empty constructor
+    const char* error_message() const {return "Vector sizes are mismatched!";} // returns character array that is error message
+}; // end VectorSizeMismatch
+
+/*
+   Function: cross_product_3
+
+   Description: Performs cross product between two 3D vectors.
+
+   Parameters: Float vector 1 and float vector 2.
+
+   Pre-Conditions: Vectors passed in should have equal number of elements.
+
+   Post-Conditions: None
+
+   Returns: New vector that is of same size as vectors passed in that is
+    the result of the cross product.
+*/
+std::vector<float> cross_product_3(std::vector<float> v1, std::vector<float> v2)
+{
+    // try-catch block to check if vectors passed in have equal number of elements
+    try
+    {
+        bool sizes_match = v1.size() == v2.size(); // flag to check sizes of vectors passed in
+        if (!sizes_match)
+        {
+            throw VectorSizeMismatch(); // throw exception class
+        }
+        else if (v1.size() > 3 || v2.size() > 3)
+        {
+            throw "Vector size(s) greater than 3!";
+        }
+    } // end try
+    catch (VectorSizeMismatch v)
+    {
+        std::cout << v.error_message() << std::endl; // display error message
+        exit(0); // exit program gracefully
+    }
+    catch (const char* msg)
+    {
+        std::cerr << msg << std::endl;
+    }// end catch
+    
+    // three components of vector from cross product
     float uv_i = v1[1] * v2[2] - v2[1] * v1[2];
     float uv_j = v2[0] * v1[2] - v1[0] * v2[2];
     float uv_k = v1[0] * v2[1] - v2[0] * v1[1];
     
-    std::vector<float> temp_vector;
+    std::vector<float> temp_vector; // populate vector with cross product components
     temp_vector.push_back(uv_i);
     temp_vector.push_back(uv_j);
     temp_vector.push_back(uv_k);
     
     return temp_vector;
-}
+} // end cross_product
 
+/*
+   Function: normalize_vector
+
+   Description: Normalizes vector passed in
+ 
+   Parameters: Float vector v
+
+   Pre-Conditions: Vector passed in should be non-empty
+
+   Post-Conditions: None
+
+   Returns: Normlized vector
+*/
 std::vector<float> normalize_vector(std::vector<float> v)
 {
-    float magnitude = sqrt(pow(v[0], 2) + pow(v[1], 2) + pow(v[2], 2));
+    float sum = 0.0;
+    for (std::vector<float>::iterator it = v.begin(); it != v.end(); ++it) // sum squares of vector components
+    {
+        sum += pow(*it, 2);
+    }
+    float magnitude = sqrt(sum); // take square root of squared sum of vector components
     
-    std::vector<float> temp_vector;
-    temp_vector.push_back(v[0]/magnitude);
-    temp_vector.push_back(v[1]/magnitude);
-    temp_vector.push_back(v[2]/magnitude);
+    std::vector<float> temp_vector; // divide all components by magnitude calculated
+    for (std::vector<float>::iterator it = v.begin(); it != v.end(); ++it)
+    {
+        temp_vector.push_back(*it/magnitude);
+    }
     
     return temp_vector;
-}
+} // end normalize_vector
 
 /*
     Function: frame_buffer_coordinates
@@ -72,7 +139,20 @@ std::tuple<GLint, GLint> frame_buffer_coordinates()
     return std::make_tuple(fbWidth, fbHeight);
 } // end frame_buffer_coordinates
 
-void myinit(void)
+/*
+   Function: init
+
+   Description: Initialization function
+
+   Parameters: None
+
+   Pre-Conditions: None
+
+   Post-Conditions: Settings for program are intizialized
+
+   Returns: Nothing
+*/
+void init(void)
 {
     GLfloat light_ambient[] =
     {0.0, 0.0, 0.0, 1.0};
@@ -80,7 +160,8 @@ void myinit(void)
     {1.0, 1.0, 1.0, 1.0};
     GLfloat light_specular[] =
     {1.0, 1.0, 1.0, 1.0};
-/* light_position is NOT default value */
+    
+    /* light_position is NOT default value */
     GLfloat light_position[] =
     {1.0, 1.0, 0.0, 0.0};
     GLfloat global_ambient[] =
@@ -100,49 +181,58 @@ void myinit(void)
     glEnable(GL_NORMALIZE);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
-}
+} // end init
 
+/*
+    Function: display
+ 
+    Description: Based on global values, display certain
+    information to the window.
+ 
+    Parameters: None
+ 
+    Pre-Conditions: Different value should carry information as
+        to how much objects need to be rotated.
+ 
+    Post-Conditions: Display on window is updated.
+ 
+    Returns: Nothing
+*/
 void display(void)
 {
-//    GLfloat low_ambient[] =
-//    {0.1, 0.1, 0.1, 1.0};
-    GLfloat more_ambient[] =
-    {0.4, 0.4, 0.4, 1.0};
-//    GLfloat most_ambient[] =
-//    {1.0, 1.0, 1.0, 1.0};
+    GLfloat more_ambient[] = {0.4, 0.4, 0.4, 1.0}; // ambience array
     
-    glEnable(GL_COLOR_MATERIAL);
-    glColor3f(0.196078, 0.6, 0.8);
+    glEnable(GL_COLOR_MATERIAL); // change color fo teapot
+    glColor3f(0.196078, 0.6, 0.8); // SkyBlue
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen
 
 
     /*  material has moderate ambient reflection */
     glMaterialfv(GL_FRONT, GL_AMBIENT, more_ambient);
+    
     glPushMatrix();
     glLoadIdentity();
 
-    std::vector<float> temp_look_vector = {0, 0, 10};
-    std::vector<float>norm_vector_ptr = normalize_vector(temp_look_vector);
+    std::vector<float> temp_look_vector = {0, 0, 10}; // holds the original temp look vector
+    std::vector<float>norm_look_vector = normalize_vector(temp_look_vector); // normalizes look vector
 
-    std::vector<float> temp_up_vector = {0, 1, 0};
-    std::vector<float> right_vector_ptr = cross_product(norm_vector_ptr, temp_up_vector);
+    std::vector<float> temp_up_vector = {0, 1, 0}; // holds temp up vector to be used for cross product
+    std::vector<float> right_vector = cross_product_3(norm_look_vector, temp_up_vector); // cross product between norm look and up vector
 
-    std::vector<float> look_vector_ptr = cross_product(right_vector_ptr, norm_vector_ptr);
+    std::vector<float> look_vector_cross = cross_product_3(right_vector, norm_look_vector); // cross product between right and norm look vector
     
-    for(int i = 0; i < 3; i++){
-        look_vector[i] = look_vector_ptr[i];
-    }
+    gluLookAt(0, 0, 10, 0, 0, -1, look_vector_cross[0], look_vector_cross[1], look_vector_cross[2]); // set gluLookAt up vecor to look_vector_cross
     
-    gluLookAt(0, 0, 10, 0, 0, -1, look_vector[0], look_vector[1], look_vector[2]);
+    glRotatef(elevation, 1, 0, 0); // rotate by elevate
+    glRotatef(swing, 0, 1, 0); // rotate by swing
     
-    glRotatef(elevation, 1, 0, 0);
-    glRotatef(swing, 0, 1, 0);
-    glutSolidTeapot(1.0);
+    glutSolidTeapot(1.0); // display teapot
     
-    glLineWidth(6.0);
+    glLineWidth(6.0); // thicker lines for x, y, z axis lines
     glBegin(GL_LINES);
     
+    /* draw lines for the x, y, z axis */
     glColor3f(1, 0, 0);
     glVertex3f(0, 5.0f, 0.0f);
     glVertex3f(0, -5.0f, 0.0f);
@@ -154,14 +244,15 @@ void display(void)
     glColor3f(0, 0, 1);
     glVertex3f(0.0f, 0, 5.0f);
     glVertex3f(0.0f, 0, -5.0f);
+    /* finish drawing axis lines */
     
     glEnd();
     
-    glLineWidth(1.0);
+    glLineWidth(1.0); // Change to thinner lines for rest of grid lines
     glBegin(GL_LINES);
     
-    glColor3f(1, 1, 1);
-    for( float i = -5; i <= 5; i += 1)
+    glColor3f(1, 1, 1); // change these lines to white
+    for(float i = -5; i <= 5; i += 1) // iterate through -5 to 5 in steps of 1 to draw grid lines
     {
         glVertex3f(i, 5.0f, 0.0f);
         glVertex3f(i, -5.0f, 0.0f);
@@ -179,41 +270,62 @@ void display(void)
         glVertex3f(0, -5.0f, 0.0f);
     }
     
-////    glColor3f(0.3, 0.3, 1.0);
-//    glLineWidth(3.0);
-//    glVertex3f(0, 5.0f, 0.0f);
-//    glVertex3f(0, -5.0f, 0.0f);
-    
     glEnd();
        
     glPopMatrix();
     
-    
     glFlush();
 
     glutSwapBuffers();
-}
+} // end display
 
+/*
+    Function: mouse
+ 
+    Description: Handle logic for mouse input
+ 
+    Parameters: None
+ 
+    Pre-Conditions: None
+ 
+    Post-Conditions: Update dragging flag and mouse positions
+ 
+    Returns: Nothing
+*/
 void mouse (int button, int state, int x, int y)
 {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) // if left mouse button held down, we are dragging
     {
         dragging = true;
-        prev_mousex = x;
+        prev_mousex = x; // reassign previous x and y
         prev_mousey = y;
     }
-    else if(button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+    else if(button == GLUT_LEFT_BUTTON && state == GLUT_UP) //  if left moues button released, we are not dragging
     {
         dragging = false;
     }
-}
+} // end mouse
 
+/*
+    Function: motion
+ 
+    Description: Handles logic for motion of mouse
+ 
+    Parameters: None
+ 
+    Pre-Conditions: None
+ 
+    Post-Conditions: Update swing and elevation based on mouse motion
+ 
+    Returns: Nothing
+*/
 void motion (int mousex, int mousey)
 {
-    if (dragging)
+    if (dragging) // if mouse is dragging then update swing and elevation accordingly
     {
         glEnable(GL_COLOR_LOGIC_OP); // set GL_COLOR_LOGIC_OP for XOR
         
+        // we take the difference of x and previous x and etc in order to provide gradual rate of rotation
         if (prev_mousex > mousex)
         {
             swing = (swing - (mousex - prev_mousex)) % 360;
@@ -234,17 +346,29 @@ void motion (int mousex, int mousey)
             elevation = (elevation + (prev_mousey - mousey)) % 360;
             glutPostRedisplay();
         }
-        prev_mousex = mousex;
+        prev_mousex = mousex; // update previous x and y
         prev_mousey = mousey;
         
         glDisable(GL_COLOR_LOGIC_OP); // disable XOR
     }
     
     glFlush();
-}
+} // end motion
     
-
-void myReshape(int w, int h)
+/*
+    Function: reshape
+ 
+    Description: Handles logic for reshaping window and objects in scene
+ 
+    Parameters: int w, int h
+ 
+    Pre-Conditions: None
+ 
+    Post-Conditions: objects in window are rescaled
+ 
+    Returns: Nothing
+*/
+void reshape(int w, int h)
 {
     GLint fbWidth;
     GLint fbHeight;
@@ -257,7 +381,7 @@ void myReshape(int w, int h)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef (0.0, 0.0, -5.0);
-}
+} // end reshape
 
 int main(int argc, char **argv)
 {
@@ -266,10 +390,10 @@ int main(int argc, char **argv)
     glutInitWindowSize(500, 500);
     glutCreateWindow(argv[0]);
     
-    myinit();
+    init();
     
     glutDisplayFunc(display);
-    glutReshapeFunc(myReshape);
+    glutReshapeFunc(reshape);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
     
