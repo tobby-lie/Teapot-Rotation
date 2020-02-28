@@ -29,6 +29,7 @@
 		E347468A24074A1200BDD6F9 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		E347469224074A3300BDD6F9 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		E347469424074A3800BDD6F9 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		E3C0BC762409CF2F0098E253 /* ReadMe.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ReadMe.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				E347468A24074A1200BDD6F9 /* main.cpp */,
+				E3C0BC762409CF2F0098E253 /* ReadMe.txt */,
 			);
 			path = graphics_hw3;
 			sourceTree = "<group>";
