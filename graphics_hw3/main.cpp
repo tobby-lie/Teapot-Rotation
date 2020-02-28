@@ -19,7 +19,7 @@ struct Coordinates
     double x, y;
 }; // end Coordinates
 
-static std::vector<Coordinates> coord_vec;
+static std::vector<Coordinates> x_grid_coord_vec;
 
 std::vector<float> cross_product(std::vector<float> v1, std::vector<float> v2)
 {
@@ -110,6 +110,9 @@ void display(void)
     {0.4, 0.4, 0.4, 1.0};
 //    GLfloat most_ambient[] =
 //    {1.0, 1.0, 1.0, 1.0};
+    
+    glEnable(GL_COLOR_MATERIAL);
+    glColor3f(0.196078, 0.6, 0.8);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -136,17 +139,56 @@ void display(void)
     glRotatef(elevation, 1, 0, 0);
     glRotatef(swing, 0, 1, 0);
     glutSolidTeapot(1.0);
+    
+    glLineWidth(6.0);
+    glBegin(GL_LINES);
+    
+    glColor3f(1, 0, 0);
+    glVertex3f(0, 5.0f, 0.0f);
+    glVertex3f(0, -5.0f, 0.0f);
+    
+    glColor3f(0, 1, 0);
+    glVertex3f(5.0f, 0, 0.0f);
+    glVertex3f(-5.0f, 0, 0.0f);
+    
+    glColor3f(0, 0, 1);
+    glVertex3f(0.0f, 0, 5.0f);
+    glVertex3f(0.0f, 0, -5.0f);
+    
+    glEnd();
+    
+    glLineWidth(1.0);
+    glBegin(GL_LINES);
+    
+    glColor3f(1, 1, 1);
+    for( float i = -5; i <= 5; i += 1)
+    {
+        glVertex3f(i, 5.0f, 0.0f);
+        glVertex3f(i, -5.0f, 0.0f);
+        
+        glVertex3f(5.0f, i, 0.0f);
+        glVertex3f(-5.0f, i, 0.0f);
+        
+        glVertex3f(0.0f, 5.0f, i);
+        glVertex3f(0.0f, -5.0f, i);
+        
+        glVertex3f(0.0f, i, 5.0f);
+        glVertex3f(0.0f, i, -5.0f);
+        
+        glVertex3f(0, 5.0f, 0.0f);
+        glVertex3f(0, -5.0f, 0.0f);
+    }
+    
+////    glColor3f(0.3, 0.3, 1.0);
+//    glLineWidth(3.0);
+//    glVertex3f(0, 5.0f, 0.0f);
+//    glVertex3f(0, -5.0f, 0.0f);
+    
+    glEnd();
+       
     glPopMatrix();
     
-    for (int i = 0; i < coord_vec.size(); i++)
-    {
-        glColor3d(1.0, 1.0, 1.0);
-        glBegin(GL_POINTS);
-        glVertex2d(coord_vec[i].x, coord_vec[i].y);
-        
-        glEnd();
-    }
-
+    
     glFlush();
 
     glutSwapBuffers();
