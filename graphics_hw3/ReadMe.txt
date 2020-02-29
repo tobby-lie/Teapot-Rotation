@@ -33,6 +33,10 @@
 *       * Any combination of these will result in
 *           movement in a combination of directions
 *           for the teapot *
+*
+*       Right click menu:
+*           - Toggle Grid - toggles grid on and off.
+*           - Quit - Exits program.
 *******************************************************
 *  Status of program:
 *       Compiles and runs. Works completely.
