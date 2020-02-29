@@ -11,11 +11,14 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <string>
 
 static int elevation, swing = 0; // variables for elevation and swing
 static int prev_mousex, prev_mousey = 0; // variables for last position of mouse coordinates before motion registered
 bool dragging = false; // flag for dragging mouse if left mouse button pressed down
 static std::vector<float> look_vector = {0, 0, 0}; // holds look vector which will be normalized and manipulated
+
+bool grid_toggle = true; // flag for grid toggle
 
 // struct to hold x, y coordinates
 struct Coordinates
@@ -182,7 +185,7 @@ void init(void)
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
 } // end init
-
+ 
 /*
     Function: display
  
@@ -229,45 +232,48 @@ void display(void)
     
     glutSolidTeapot(1.0); // display teapot
     
-    glLineWidth(6.0); // thicker lines for x, y, z axis lines
-    glBegin(GL_LINES);
-    
-    /* draw lines for the x, y, z axis */
-    glColor3f(1, 0, 0);
-    glVertex3f(0, 5.0f, 0.0f);
-    glVertex3f(0, -5.0f, 0.0f);
-    
-    glColor3f(0, 1, 0);
-    glVertex3f(5.0f, 0, 0.0f);
-    glVertex3f(-5.0f, 0, 0.0f);
-    
-    glColor3f(0, 0, 1);
-    glVertex3f(0.0f, 0, 5.0f);
-    glVertex3f(0.0f, 0, -5.0f);
-    /* finish drawing axis lines */
-    
-    glEnd();
-    
-    glLineWidth(1.0); // Change to thinner lines for rest of grid lines
-    glBegin(GL_LINES);
-    
-    glColor3f(1, 1, 1); // change these lines to white
-    for(float i = -5; i <= 5; i += 1) // iterate through -5 to 5 in steps of 1 to draw grid lines
+    if (grid_toggle)
     {
-        glVertex3f(i, 5.0f, 0.0f);
-        glVertex3f(i, -5.0f, 0.0f);
+        glLineWidth(6.0); // thicker lines for x, y, z axis lines
+        glBegin(GL_LINES);
         
-        glVertex3f(5.0f, i, 0.0f);
-        glVertex3f(-5.0f, i, 0.0f);
-        
-        glVertex3f(0.0f, 5.0f, i);
-        glVertex3f(0.0f, -5.0f, i);
-        
-        glVertex3f(0.0f, i, 5.0f);
-        glVertex3f(0.0f, i, -5.0f);
-        
+        /* draw lines for the x, y, z axis */
+        glColor3f(1, 0, 0);
         glVertex3f(0, 5.0f, 0.0f);
         glVertex3f(0, -5.0f, 0.0f);
+        
+        glColor3f(0, 1, 0);
+        glVertex3f(5.0f, 0, 0.0f);
+        glVertex3f(-5.0f, 0, 0.0f);
+        
+        glColor3f(0, 0, 1);
+        glVertex3f(0.0f, 0, 5.0f);
+        glVertex3f(0.0f, 0, -5.0f);
+        /* finish drawing axis lines */
+        
+        glEnd();
+        
+        glLineWidth(1.0); // Change to thinner lines for rest of grid lines
+        glBegin(GL_LINES);
+        
+        glColor3f(1, 1, 1); // change these lines to white
+        for(float i = -5; i <= 5; i += 1) // iterate through -5 to 5 in steps of 1 to draw grid lines
+        {
+            glVertex3f(i, 5.0f, 0.0f);
+            glVertex3f(i, -5.0f, 0.0f);
+            
+            glVertex3f(5.0f, i, 0.0f);
+            glVertex3f(-5.0f, i, 0.0f);
+            
+            glVertex3f(0.0f, 5.0f, i);
+            glVertex3f(0.0f, -5.0f, i);
+            
+            glVertex3f(0.0f, i, 5.0f);
+            glVertex3f(0.0f, i, -5.0f);
+            
+            glVertex3f(0, 5.0f, 0.0f);
+            glVertex3f(0, -5.0f, 0.0f);
+        }
     }
     
     glEnd();
@@ -383,6 +389,32 @@ void reshape(int w, int h)
     glTranslatef (0.0, 0.0, -5.0);
 } // end reshape
 
+/*
+    Function: main_menu_select
+ 
+    Description: Handles logic for drop-down menu selection
+ 
+    Parameters: int value
+ 
+    Pre-Conditions: None
+ 
+    Post-Conditions: menu options are executed
+ 
+    Returns: Nothing
+*/
+void main_menu_select(int value)
+{
+    if (value == 1) // toggle grid on and off
+    {
+        grid_toggle = !grid_toggle;
+    }
+    else if (value == -1) // exit program
+    {
+        exit(0);
+    }
+    glutPostRedisplay();
+} // end main_menu_select
+
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
@@ -396,6 +428,11 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
+    
+    glutCreateMenu(main_menu_select);
+    glutAddMenuEntry("Toggle Grid", 1);
+    glutAddMenuEntry("Quit", -1);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
     
     glutMainLoop();
     
