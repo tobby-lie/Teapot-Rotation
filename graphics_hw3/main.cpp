@@ -11,13 +11,10 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
-#include <string>
 
 static int elevation, swing = 0; // variables for elevation and swing
 static int prev_mousex, prev_mousey = 0; // variables for last position of mouse coordinates before motion registered
 bool dragging = false; // flag for dragging mouse if left mouse button pressed down
-static std::vector<float> look_vector = {0, 0, 0}; // holds look vector which will be normalized and manipulated
-
 bool grid_toggle = true; // flag for grid toggle
 
 // struct to hold x, y coordinates
@@ -25,97 +22,6 @@ struct Coordinates
 {
     double x, y;
 }; // end Coordinates
-
-// exception class for vector size mismatch
-class VectorSizeMismatch
-{
-public:
-    VectorSizeMismatch() {} // empty constructor
-    const char* error_message() const {return "Vector sizes are mismatched!";} // returns character array that is error message
-}; // end VectorSizeMismatch
-
-/*
-   Function: cross_product_3
-
-   Description: Performs cross product between two 3D vectors.
-
-   Parameters: Float vector 1 and float vector 2.
-
-   Pre-Conditions: Vectors passed in should have equal number of elements.
-
-   Post-Conditions: None
-
-   Returns: New vector that is of same size as vectors passed in that is
-    the result of the cross product.
-*/
-std::vector<float> cross_product_3(std::vector<float> v1, std::vector<float> v2)
-{
-    // try-catch block to check if vectors passed in have equal number of elements
-    try
-    {
-        bool sizes_match = v1.size() == v2.size(); // flag to check sizes of vectors passed in
-        if (!sizes_match)
-        {
-            throw VectorSizeMismatch(); // throw exception class
-        }
-        else if (v1.size() > 3 || v2.size() > 3)
-        {
-            throw "Vector size(s) greater than 3!";
-        }
-    } // end try
-    catch (VectorSizeMismatch v)
-    {
-        std::cout << v.error_message() << std::endl; // display error message
-        exit(0); // exit program gracefully
-    }
-    catch (const char* msg)
-    {
-        std::cerr << msg << std::endl;
-    }// end catch
-    
-    // three components of vector from cross product
-    float uv_i = v1[1] * v2[2] - v2[1] * v1[2];
-    float uv_j = v2[0] * v1[2] - v1[0] * v2[2];
-    float uv_k = v1[0] * v2[1] - v2[0] * v1[1];
-    
-    std::vector<float> temp_vector; // populate vector with cross product components
-    temp_vector.push_back(uv_i);
-    temp_vector.push_back(uv_j);
-    temp_vector.push_back(uv_k);
-    
-    return temp_vector;
-} // end cross_product
-
-/*
-   Function: normalize_vector
-
-   Description: Normalizes vector passed in
- 
-   Parameters: Float vector v
-
-   Pre-Conditions: Vector passed in should be non-empty
-
-   Post-Conditions: None
-
-   Returns: Normlized vector
-*/
-std::vector<float> normalize_vector(std::vector<float> v)
-{
-    float sum = 0.0;
-    for (std::vector<float>::iterator it = v.begin(); it != v.end(); ++it) // sum squares of vector components
-    {
-        sum += pow(*it, 2);
-    }
-    float magnitude = sqrt(sum); // take square root of squared sum of vector components
-    
-    std::vector<float> temp_vector; // divide all components by magnitude calculated
-    for (std::vector<float>::iterator it = v.begin(); it != v.end(); ++it)
-    {
-        temp_vector.push_back(*it/magnitude);
-    }
-    
-    return temp_vector;
-} // end normalize_vector
 
 /*
     Function: frame_buffer_coordinates
@@ -210,22 +116,12 @@ void display(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen
 
-
     /*  material has moderate ambient reflection */
     glMaterialfv(GL_FRONT, GL_AMBIENT, more_ambient);
     
-    glPushMatrix();
     glLoadIdentity();
-
-    std::vector<float> temp_look_vector = {0, 0, 10}; // holds the original temp look vector
-    std::vector<float>norm_look_vector = normalize_vector(temp_look_vector); // normalizes look vector
-
-    std::vector<float> temp_up_vector = {0, 1, 0}; // holds temp up vector to be used for cross product
-    std::vector<float> right_vector = cross_product_3(norm_look_vector, temp_up_vector); // cross product between norm look and up vector
-
-    std::vector<float> look_vector_cross = cross_product_3(right_vector, norm_look_vector); // cross product between right and norm look vector
     
-    gluLookAt(0, 0, 10, 0, 0, -1, look_vector_cross[0], look_vector_cross[1], look_vector_cross[2]); // set gluLookAt up vecor to look_vector_cross
+    gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0); // set gluLookAt up vecor to look_vector_cross
     
     glRotatef(elevation, 1, 0, 0); // rotate by elevate
     glRotatef(swing, 0, 1, 0); // rotate by swing
@@ -277,8 +173,6 @@ void display(void)
     }
     
     glEnd();
-       
-    glPopMatrix();
     
     glFlush();
 
