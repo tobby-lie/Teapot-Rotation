@@ -6,7 +6,12 @@
 
 #define GL_SILENCE_DEPRECATION // silence deprecation warnings
 
-#include <GLUT/GLUT.h>
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
 #include <iostream>
 #include <vector>
 #include <tuple>
