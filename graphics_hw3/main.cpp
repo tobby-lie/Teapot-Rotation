@@ -19,6 +19,8 @@ static bool grid_toggle = true; // flag for grid toggle
 static const float z_distance = 10.0; // z distance away from origin or teapot
 std::vector<float> up_vector = {0, 1, 0}; // up vector for glulookat
 
+#define M_PI   3.14159265358979323846264338327950288 // constant for pi
+
 /*
     Function: frame_buffer_coordinates
  
