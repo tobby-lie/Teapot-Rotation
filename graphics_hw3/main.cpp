@@ -136,7 +136,7 @@ void display(void)
     else
         up_vector = { 0, 1, 0 };
     
-    gluLookAt(cam_x, cam_y, cam_z, 0, 0, 0, up_vector[0], up_vector[1], up_vector[2]); // set gluLookAt up vecor to look_vector_cross
+    gluLookAt(-cam_x, -cam_y, cam_z, 0, 0, 0, up_vector[0], up_vector[1], up_vector[2]); // set gluLookAt up vecor to look_vector_cross
     glutSolidTeapot(1.0); // display teapot
     
     if (grid_toggle)
@@ -244,7 +244,7 @@ void motion (int mousex, int mousey)
         }
         if (prev_mousex < mousex)
         {
-            swing = (swing + (prev_mousex - mousex)) % 360;
+            swing = (swing - (mousex - prev_mousex)) % 360;
             glutPostRedisplay();
         }
         if (prev_mousey > mousey)
