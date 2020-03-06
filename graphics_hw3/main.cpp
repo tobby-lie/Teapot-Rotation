@@ -16,6 +16,8 @@ static int elevation, swing = 0; // variables for elevation and swing
 static int prev_mousex, prev_mousey = 0; // variables for last position of mouse coordinates before motion registered
 bool dragging = false; // flag for dragging mouse if left mouse button pressed down
 bool grid_toggle = true; // flag for grid toggle
+static float z_distance = 10.0;
+std::vector<float> up_vector = {0, 1, 0};
 
 // struct to hold x, y coordinates
 struct Coordinates
@@ -121,11 +123,20 @@ void display(void)
     
     glLoadIdentity();
     
-    gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0); // set gluLookAt up vecor to look_vector_cross
+    // Calculate the camera position using the distance and angles
+    float cam_x = z_distance * -sinf(swing*(M_PI / 180)) * cosf((elevation)*(M_PI / 180));
+    float cam_y = z_distance * -sinf((elevation)*(M_PI / 180));
+    float cam_z = -z_distance * cosf((swing)*(M_PI / 180)) * cosf((elevation)*(M_PI / 180));
     
-    glRotatef(elevation, 1, 0, 0); // rotate by elevate
-    glRotatef(swing, 0, 1, 0); // rotate by swing
+    // if absolute value of elevation within bounds of [90, 270) flip the up vector
+    if (abs(elevation) >= 90 && abs(elevation) < 270)
+    {
+        up_vector = { 0, -1, 0 };
+    }
+    else
+        up_vector = { 0, 1, 0 };
     
+    gluLookAt(cam_x, cam_y, cam_z, 0, 0, 0, up_vector[0], up_vector[1], up_vector[2]); // set gluLookAt up vecor to look_vector_cross
     glutSolidTeapot(1.0); // display teapot
     
     if (grid_toggle)

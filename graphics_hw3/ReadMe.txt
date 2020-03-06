@@ -12,9 +12,6 @@
 *       5744HW3.xcodeproj - Xcode project file
 *           that can run program.
 *  Functional organization:
-*       cross_product_3 - Performs cross product between
-*           two 3D vectors.
-*       normalize_vector - Normalizes vector passed in.
 *       frame_buffer_coordinates - Gets frame buffer
 *           width and height in tuple form.
 *       mouse - Handles logic for mouse input.
