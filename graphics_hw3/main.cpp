@@ -12,18 +12,12 @@
 #include <tuple>
 #include <cmath>
 
-static int elevation, swing = 0; // variables for elevation and swing
-static int prev_mousex, prev_mousey = 0; // variables for last position of mouse coordinates before motion registered
-bool dragging = false; // flag for dragging mouse if left mouse button pressed down
-bool grid_toggle = true; // flag for grid toggle
-static float z_distance = 10.0;
-std::vector<float> up_vector = {0, 1, 0};
-
-// struct to hold x, y coordinates
-struct Coordinates
-{
-    double x, y;
-}; // end Coordinates
+static float elevation, swing = 0.0; // variables for elevation and swing
+static float prev_mousex, prev_mousey = 0.0; // variables for last position of mouse coordinates before motion registered
+static bool dragging = false; // flag for dragging mouse if left mouse button pressed down
+static bool grid_toggle = true; // flag for grid toggle
+static const float z_distance = 10.0; // z distance away from origin or teapot
+std::vector<float> up_vector = {0, 1, 0}; // up vector for glulookat
 
 /*
     Function: frame_buffer_coordinates
@@ -84,7 +78,7 @@ void init(void)
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
-
+    
     glFrontFace(GL_CW);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -111,10 +105,10 @@ void init(void)
 */
 void display(void)
 {
-    GLfloat more_ambient[] = {0.4, 0.4, 0.4, 1.0}; // ambience array
+    GLfloat more_ambient[] = {0.4f, 0.4f, 0.4f, 1.0f}; // ambience array
     
     glEnable(GL_COLOR_MATERIAL); // change color fo teapot
-    glColor3f(0.196078, 0.6, 0.8); // SkyBlue
+    glColor3f(0.196078f, 0.6f, 0.8f); // SkyBlue
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen
 
@@ -131,56 +125,62 @@ void display(void)
     // if absolute value of elevation within bounds of [90, 270) flip the up vector
     if (abs(elevation) >= 90 && abs(elevation) < 270)
     {
-        up_vector = { 0, -1, 0 };
+        up_vector = {0, -1, 0};
     }
     else
-        up_vector = { 0, 1, 0 };
+        up_vector = {0, 1, 0};
     
     gluLookAt(-look_x, -look_y, look_z, 0, 0, 0, up_vector[0], up_vector[1], up_vector[2]); // set gluLookAt up vecor to look_vector_cross
     
-    glutSolidTeapot(1.0); // display teapot
+    glutSolidTeapot(1.0f); // display teapot
     
     if (grid_toggle)
     {
-        glLineWidth(6.0); // thicker lines for x, y, z axis lines
+        glLineWidth(6.0f); // thicker lines for x, y, z axis lines
         glBegin(GL_LINES);
         
         /* draw lines for the x, y, z axis */
-        glColor3f(1, 0, 0);
-        glVertex3f(0, 5.0f, 0.0f);
-        glVertex3f(0, -5.0f, 0.0f);
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 2.0f, 0.0f);
+        glVertex3f(0.0f, -2.0f, 0.0f);
         
-        glColor3f(0, 1, 0);
-        glVertex3f(5.0f, 0, 0.0f);
-        glVertex3f(-5.0f, 0, 0.0f);
+        glColor3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(2.0f, 0.0f, 0.0f);
+        glVertex3f(-2.0f, 0.0f, 0.0f);
         
-        glColor3f(0, 0, 1);
-        glVertex3f(0.0f, 0, 5.0f);
-        glVertex3f(0.0f, 0, -5.0f);
+        glColor3f(0.0f, 0.0f, 1.0f);
+        glVertex3f(0.0f, 0.0f, 2.0f);
+        glVertex3f(0.0f, 0.0f, -2.0f);
         /* finish drawing axis lines */
         
         glEnd();
         
-        glLineWidth(1.0); // Change to thinner lines for rest of grid lines
+        glLineWidth(1.0f); // Change to thinner lines for rest of grid lines
         glBegin(GL_LINES);
         
-        glColor3f(1, 1, 1); // change these lines to white
-        for(float i = -5; i <= 5; i += 1) // iterate through -5 to 5 in steps of 1 to draw grid lines
+        glColor3f(0.658824f, 0.658824f, 0.658824f); // change these lines to light gray
+        for(float i = -2; i <= 2.2; i += .2) // iterate through -5 to 5 in steps of 1 to draw grid lines
         {
-            glVertex3f(i, 5.0f, 0.0f);
-            glVertex3f(i, -5.0f, 0.0f);
+            glVertex3f(i, 2.0f, 0.0f);
+            glVertex3f(i, -2.0f, 0.0f);
             
-            glVertex3f(5.0f, i, 0.0f);
-            glVertex3f(-5.0f, i, 0.0f);
+            glVertex3f(2.0f, i, 0.0f);
+            glVertex3f(-2.0f, i, 0.0f);
             
-            glVertex3f(0.0f, 5.0f, i);
-            glVertex3f(0.0f, -5.0f, i);
+            glVertex3f(0.0f, 2.0f, i);
+            glVertex3f(0.0f, -2.0f, i);
             
-            glVertex3f(0.0f, i, 5.0f);
-            glVertex3f(0.0f, i, -5.0f);
+            glVertex3f(0.0f, i, 2.0f);
+            glVertex3f(0.0f, i, -2.0f);
             
-            glVertex3f(0, 5.0f, 0.0f);
-            glVertex3f(0, -5.0f, 0.0f);
+            glVertex3f(0.0f, 2.0f, 0.0f);
+            glVertex3f(0.0f, -2.0f, 0.0f);
+            
+            glVertex3f(i, 0.0f, 2.0f);
+            glVertex3f(i, 0.0f, -2.0f);
+            
+            glVertex3f(2.0f, 0.0f, i);
+            glVertex3f(-2.0f, 0.0f, i);
         }
     }
     
@@ -209,8 +209,8 @@ void mouse (int button, int state, int x, int y)
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) // if left mouse button held down, we are dragging
     {
         dragging = true;
-        prev_mousex = x; // reassign previous x and y
-        prev_mousey = y;
+        prev_mousex = float(x); // reassign previous x and y
+        prev_mousey = float(y);
     }
     else if(button == GLUT_LEFT_BUTTON && state == GLUT_UP) //  if left moues button released, we are not dragging
     {
@@ -240,26 +240,26 @@ void motion (int mousex, int mousey)
         // we take the difference of x and previous x and etc in order to provide gradual rate of rotation
         if (prev_mousex > mousex)
         {
-            swing = (swing - (mousex - prev_mousex)) % 360;
+            swing = fmod((swing - (float(mousex) - prev_mousex)), 360.0); // fmod to allow modulus for floats
             glutPostRedisplay();
         }
         if (prev_mousex < mousex)
         {
-            swing = (swing - (mousex - prev_mousex)) % 360;
+            swing = fmod((swing - (float(mousex) - prev_mousex)), 360.0);
             glutPostRedisplay();
         }
         if (prev_mousey > mousey)
         {
-            elevation = (elevation - (mousey - prev_mousey)) % 360;
+            elevation = fmod((elevation - (float(mousey) - prev_mousey)), 360.0);
             glutPostRedisplay();
         }
         if (prev_mousey < mousey)
         {
-            elevation = (elevation + (prev_mousey - mousey)) % 360;
+            elevation = fmod((elevation + (prev_mousey - float(mousey))), 360.0);
             glutPostRedisplay();
         }
-        prev_mousex = mousex; // update previous x and y
-        prev_mousey = mousey;
+        prev_mousex = float(mousex); // update previous x and y
+        prev_mousey = float(mousey);
         
         glDisable(GL_COLOR_LOGIC_OP); // disable XOR
     }
@@ -324,7 +324,7 @@ void main_menu_select(int value)
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(500, 500);
     glutCreateWindow(argv[0]);
     
