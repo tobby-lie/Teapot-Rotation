@@ -124,9 +124,9 @@ void display(void)
     glLoadIdentity();
     
     // Calculate the camera position using the distance and angles
-    float cam_x = z_distance * -sinf(swing*(M_PI / 180)) * cosf((elevation)*(M_PI / 180));
-    float cam_y = z_distance * -sinf((elevation)*(M_PI / 180));
-    float cam_z = -z_distance * cosf((swing)*(M_PI / 180)) * cosf((elevation)*(M_PI / 180));
+    float look_x = z_distance * -sinf(swing*(M_PI / 180)) * cosf((elevation)*(M_PI / 180));
+    float look_y = z_distance * -sinf((elevation)*(M_PI / 180));
+    float look_z = -z_distance * cosf((swing)*(M_PI / 180)) * cosf((elevation)*(M_PI / 180));
     
     // if absolute value of elevation within bounds of [90, 270) flip the up vector
     if (abs(elevation) >= 90 && abs(elevation) < 270)
@@ -136,7 +136,8 @@ void display(void)
     else
         up_vector = { 0, 1, 0 };
     
-    gluLookAt(-cam_x, -cam_y, cam_z, 0, 0, 0, up_vector[0], up_vector[1], up_vector[2]); // set gluLookAt up vecor to look_vector_cross
+    gluLookAt(-look_x, -look_y, look_z, 0, 0, 0, up_vector[0], up_vector[1], up_vector[2]); // set gluLookAt up vecor to look_vector_cross
+    
     glutSolidTeapot(1.0); // display teapot
     
     if (grid_toggle)
