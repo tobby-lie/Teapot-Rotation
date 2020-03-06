@@ -192,8 +192,6 @@ void display(void)
     }
     
     glEnd();
-    
-    glFlush();
 
     glutSwapBuffers();
 } // end display
